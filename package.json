@@ -1,0 +1,17 @@
+{
+    "name": "adaptive-learning",
+    "description": "description",
+    "authors": "TanishqJain",
+    "version": "1.0.0",
+    "dependencies": {
+        "compression": "^1.7.3",
+        "express": "^4.16.4",
+        "express-session": "^1.15.6",
+        "googleapis": "^36.0.0",
+        "method-override": "^3.0.0",
+        "mongoose": "^5.4.1",
+        "morgan": "^1.9.1",
+        "passport": "^0.4.0",
+        "passport-local": "^1.0.0"
+    }
+}

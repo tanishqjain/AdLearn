@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <!--for google sign in button-->
+    <meta name="google-signin-client_id" content="1051473870826-e9neo8fuqc1su8q0otvul9jujeodp7pn.apps.googleusercontent.com">
+
+    <title>AdLearn</title>
+    
+    <!--for using goole signin api-->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.7.5/angular-route.js"></script>
+    
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+    <!-- all angular controllers and modules etc... Always write dependencies script first then dependent scripts-->
+    <script type="text/javascript" src="public/routes/client.route.js"></script>
+    <script type="text/javascript" src="public/application.js"></script>
+
+
+</head>
+<body ng-app="adaptive-learning">
+        <nav class="navbar navbar-expand-lg navbar-light bg-dark">
+                <a class="navbar-brand" href="#" style="color: antiquewhite" >AdLearn</a>
+                
+                
+         </nav> <br> <br>
+
+         <!--Angular dynamic content-->
+        
+         <div ng-view class="container-fluid row"></div>
+        
+
+        
+
+</body>
+</html>
