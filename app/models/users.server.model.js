@@ -30,12 +30,14 @@ var UserSchema = new Schema({
         required : 'Provider is required'
     },
 
-    providerId : String , //indicate userId for authentication strategy
-    providerData : {}, //this field would be used to store user Object provided by OAuth providers
+    //providerId : String , //indicate userId for authentication strategy
+    //providerData : {}, //this field would be used to store user Object provided by OAuth providers
+    
     created :{
         type : Date,
         default : Date.now 
-    }
+    },
+
 });
 
 

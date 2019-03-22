@@ -96,6 +96,32 @@ exports.read = function(req, res, next){
     }
 }
 
+/*exports.saveOAuthUserProfile = function(req, profile, done){
+    User.findOne({
+        email : profile.email
+    }), function(err, user){
+        if(err){
+            return done(err)
+        }
+        else{
+            if(!user){
+                user = new User(profile);
+
+                user.save(function(err){
+                    if(err){
+                        res.send("error in signing up");
+                    }
+                    return done(err, user)
+                });
+            }
+
+            else{
+                return done(err, user);
+            }
+        }
+    }
+}*/
+
 
 
 

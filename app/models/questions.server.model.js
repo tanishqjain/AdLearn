@@ -1,19 +1,19 @@
 var mongoose = require('mongoose') ;
+var random = require('mongoose-simple-random')
 var Schema = mongoose.Schema ;
 
 var QuestionSchema = new Schema({
     QuestionStatement: String,
     QuestionType : String,
-    Options: String,
+    Option1: String,
+    Option2: String,
+    Option3: String,
+    Option4: String,
     CorrectAnswer : String,
-    Catagorie: String,
-    SubCatagorieOne: String,
-    SubCategorieTwo: String,
-    SubcategorieThree: String,
-    SubcategorieFour: String,
-
-    DifficultyRank: String
-    
-    
+    DifficultyRank: String,
+    Topic : String,
+    Concepts : [{name : String, intensity : Number }]
 });
+
+QuestionSchema.plugin(random)
 mongoose.model('Question', QuestionSchema);

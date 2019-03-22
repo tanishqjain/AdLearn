@@ -17,4 +17,5 @@ var passport = require('passport'),
         });
 
         require('../config/strategies/local.js')() ; //calls our local strategie file
+        // require('../config/strategies/google.js')(); //calls our login using google strategie file
     };
