@@ -2,7 +2,7 @@ var questions = require('../controllers/questions.server.controller')
 var topics = require('../controllers/topics.controller')
 
 module.exports = function(app){
-    app.post('/AddQuestion', questions.AddQuestion);
+    app.post('/AddQuestion',topics.BeforeAddingQuestion ,questions.AddQuestion);
 
     app.post('/StartQuiz',  questions.KnowExaminee);
     
