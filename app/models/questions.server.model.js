@@ -10,7 +10,7 @@ var QuestionSchema = new Schema({
     Option3: String,
     Option4: String,
     CorrectAnswer : String,
-    DifficultyRank: String,
+    DifficultyRank: Number,
     Topic : String,
     Concepts : [{name : String, intensity : Number }]
 });

@@ -53,7 +53,7 @@ exports.KnowExaminee = function(req,res,next){
             return res.send(message);
         }
 
-        else if(userperformance){
+        else if(userperformance && userperformance.concepts.length>0){
             //console.log(userperformance.topic, userperformance.concepts)
             var i = 0;
             while(true){
@@ -87,78 +87,73 @@ exports.KnowExaminee = function(req,res,next){
         }
         
         else{
-            numberOfQuestions = 10; // If student is giving first attempt in that topic;
+            numberOfQuestions = 3; // If student is giving first attempt in that topic;
+            console.log(numberOfQuestions)
             next();
         }
     })
     
 }
 
-exports.GenerateQuestions = function(req,res,next){
+exports.GenerateQuestions = async function(req,res,next){
+    console.log(numberOfQuestions)
   if(numberOfQuestions > 0){
     if(weakConceptsArray.length > 0){ 
         console.log(weakConceptsArray[0],attemptedTopic, difficultyLevel,questionsProjected)
         var i = 0
         var questionGenerated ;
         while(true){
-            if(numberOfQuestions[i] > 0){
-                Question.findOne({$and : [{"Concepts.name" : weakConceptsArray[i]},
-                                          {"Concepts.intensity" :{$in : [3,4,5]}},
-                                          {"Topic" : attemptedTopic},
-                                          {"DifficultyRank" : difficultyLevel},
-                                          {"_id" : {$nin : questionsProjected}}]},
-                    function (err,question){
-                        if(err){
-                            var message = getErrorMessage(err);
-                            return res.send(message);
-                        }
-                        else{
-                            console.log(question)
-                            answerToPreviousQuestion = question.CorrectAnswer;
-                            questionsProjected.push(question._id)
-                            questionGenerated = question;
-                            
-                        }
-                })
-                numberOfQuestions[i] = numberOfQuestions[i]-1
+            if(QuestionsEachConcept[i] > 0){
+               try {
+                let question = await Question.findOne({$and : [{"Concepts.name" : weakConceptsArray[i]},
+                                                    {"Concepts.intensity" :{$in : [3,4,5]}},
+                                                    {"Topic" : attemptedTopic},
+                                                    {"DifficultyRank" : difficultyLevel},
+                                                    {"_id" : {$nin : questionsProjected}}]})
+                if(question){
+                    answerToPreviousQuestion = question.CorrectAnswer;
+                    questionsProjected.push(question._id)
+                    questionGenerated = question;
+                }
+               } catch (err) {
+                var message = getErrorMessage(err);
+                return res.send(message);    
+               }
+                
+                QuestionsEachConcept[i] = QuestionsEachConcept[i]-1
                 break;
             }
     
             else{
                 difficultyLevel = 5;
                 i++;
-            }
-            numberOfQuestions = numberOfQuestions-1;
-            res.send(questionGenerated);
-            
+            }    
         }
+        numberOfQuestions = numberOfQuestions-1;
+        res.send(questionGenerated);
+    }
     
-    
-    
-      }
-    
-      else{
-        
-        Question.findOneRandom({
-            Topic : attemptedTopic,
-            DifficultyRank : difficultyLevel,
-            _id : {$nin : questionsProjected}
-        }, function(err, question){
-            if(err){
-                var message = getErrorMessage(err);
-                return res.send(message);
-            }
-            else{
+    else{
+        try {
+            let question = await Question.findOne({
+                Topic : attemptedTopic,
+                DifficultyRank : difficultyLevel,
+                _id : {$nin : questionsProjected}
+            }) 
+            if(question){
+                console.log(question.QuestionStatement)
                 answerToPreviousQuestion = question.CorrectAnswer;
                 questionsProjected.push(question._id)
                 numberOfQuestions = numberOfQuestions-1;
                 res.send(question)
-                
-            }
-        })
+                }
+        } catch (err) {
+            var message = getErrorMessage(err);
+            return res.send(message); 
+        }
+        
       }
   }
-
   else{
       res.send("your responses have been saved evaluation in progress.....");
       
@@ -166,6 +161,7 @@ exports.GenerateQuestions = function(req,res,next){
 }
 
 exports.Evaluate = function(req,res,next){
+    console.log(questionsProjected)
     if(questionsProjected.length > 0){
         if(req.query.answer == answerToPreviousQuestion){
             answerArray.push(1)
@@ -183,27 +179,32 @@ exports.Evaluate = function(req,res,next){
     next();
 }
 
-exports.FinalEvaluation = function(req,res,next){
+
+
+exports.FinalEvaluation = async function(req,res,next){
     //calculating score......
     var maximumMarks = questionsProjected.length*5 // 5 being the difficulty rank
     var score = 0, i=0
     while(i<questionsProjected.length){
         if(answerArray[i] == 1){        
-            Question.findById(questionsProjected[i],function(err,question){
-            if(err){
+            try {
+                let question = await Question.findById(questionsProjected[i])
+                if(question)
+                {
+                    score = score+question.DifficultyRank
+                    i++;
+                }
+            } catch (err) {
                 var message = getErrorMessage(err);
                 return res.send(message);
-            }
-            else{
-                score = score+question.DifficultyRank
-                i++;
-            }
-        })}
+            }    
+        }
         else{
             i++
         }
-    }
+    }    
     var percent  = score/maximumMarks*100
+    console.log(score, percent)
 
     //calculating TIRT ratio for recommendation
    
@@ -215,53 +216,58 @@ exports.FinalEvaluation = function(req,res,next){
     var finalPerformanceArrayofObjects = []
 
     var AvailableConceptsArray = []
-    TopicSchema.findOne({"Topic" : attemptedTopic}, function(err,topic){
-        if(err){
-            var message = getErrorMessage(err);
-            return res.send(message);
-        }
-        else{
+    try {
+        let topic  = await TopicSchema.findOne({"Topic" : attemptedTopic})
+        if(topic){
             AvailableConceptsArray = topic.Concepts
         }
-    })
+    } catch (error) {
+        var message = getErrorMessage(err);
+        return res.send(message);
+    }
+    console.log(AvailableConceptsArray,answerArray,numberOfQuestions)
 
-    //creating tirtratio matrix for all questions
+
+   //creating tirtratio matrix for all questions
     var i=0, j=0
     var tirtRationRow = [];
-    while (i<numberOfQuestions){
+    while (i<answerArray.length){
+        
         j=0;
         tirtRationRow = [];
         while(j<AvailableConceptsArray.length){
-            Question.findOne({$and : [{"_id" : questionsProjected[i]},
-                                      {"Concepts" : {$elemMatch : {"name" : AvailableConceptsArray[j]}}}
-                            ]},
-                            function(err,question){
-                                if(err){
-                                    var message = getErrorMessage(err);
-                                    return res.send(message);  
-                                }
-                                else if(question){ //if question have that concept push its intensity in tirtratio row
-                                    var z = 0
-                                    while(z<question.Concepts.length){
-                                        if(AvailableConceptsArray[j] == question.Concepts[z].name){
-                                            break
-                                        }
-                                        else{ 
-                                            z++
-                                        }
-                                    }
-                                    tirtRationRow.push(question.Concepts[z].intensity)
-                                }
-                                else { // if question doesnt have that concept insert zero
-                                    tirtRationRow.push(0)
-                                }
-                            })
+            
+            try {
+                let question = await Question.findOne({$and : [{"_id" : questionsProjected[i]},
+                                      {"Concepts" : {$elemMatch : {"name" : AvailableConceptsArray[j]}}}]})
+                if(question){
+                    var z = 0
+                    while(z<question.Concepts.length){
+                        if(AvailableConceptsArray[j] == question.Concepts[z].name){
+                            break
+                        }
+                        else{ 
+                            z++
+                        }
+                    }
+                    tirtRationRow.push(question.Concepts[z].intensity)
+                }                   
+                else {         // if question doesnt have that concept insert zero
+                    tirtRationRow.push(0)
+                }
+            } catch (err) {
+                var message = getErrorMessage(err);
+                return res.send(message);
+            }   
+                            
             j++ //do for each concept
         }
+        
         tirtMatrix.push(tirtRationRow)
         i++; //do for each question
     }
-
+    console.log(tirtMatrix)
+   
     //creating tirt ratio matrix for questions wrongly answered
     i=0
     while(i<answerArray.length){
@@ -273,18 +279,20 @@ exports.FinalEvaluation = function(req,res,next){
             i++
         }
     }
+    console.log(tirtMatrixFailure)
 
     i=0,j=0 // creating summation of tirt ratio all questions
     var sum
     while(i<AvailableConceptsArray.length){
         j=0, sum=0
-        while(j<numberOfQuestions){
+        while(j<answerArray.length){
            sum =  sum + tirtMatrix[j][i]
            j++
         }
         summationTirtRatio.push(sum)
         i++
     }
+    console.log(summationTirtRatio)
 
     i=0, j=0 //creating summation of tirt ratio failed questions
     while(i<AvailableConceptsArray.length){
@@ -296,6 +304,8 @@ exports.FinalEvaluation = function(req,res,next){
         summationTirtRatioFailure.push(sum)
         i++
     }
+    console.log(summationTirtRatioFailure)
+
 
     i=0
     var percentFailure = 0
@@ -304,6 +314,7 @@ exports.FinalEvaluation = function(req,res,next){
         failurePercentinEachConcept.push(percentFailure)
         i++
     }
+    console.log(failurePercentinEachConcept)
 
 // Finally saving all the data in userPerformance Collection 
     i=0
@@ -316,23 +327,30 @@ exports.FinalEvaluation = function(req,res,next){
             i++
         }
     }
+    console.log(finalPerformanceArrayofObjects)
 
-    UserPerformance.update({"userEmail" : req.user.email, "topic" : attemptedTopic},
-                           {"userEmail" : req.user.email,
-                             "topic" : attemptedTopic,
-                            "Concepts" : finalPerformanceArrayofObjects,
-                            "previousTestScore" : percent,
-                            "date" : Date.now}, {upsert : true}, function(err,performance){
-                                if(err){
-                                    var message = getErrorMessage(err);
-                                    return res.send(message); 
-                                }
-                                else{
-                                    res.send("Performance updated successfully......")
-                                }
-                            })
+
+   try {
+        let performance = await UserPerformance.updateOne({"userEmail" : req.user.email, "topic" : attemptedTopic},
+        {"userEmail" : req.user.email,
+        "topic" : attemptedTopic,
+        "concepts" : finalPerformanceArrayofObjects,
+        "previousTestScore" : percent,
+        "date" : Date.now()}, {upsert : true})
+
+        if(performance){
+    res.send("Performance updated successfully......")
+    }
+    } catch (err) {
+        var message = getErrorMessage(err);
+        return res.send(message);
+    }
 }
 
+
+exports.settingQuestionDifficulty = function(req,res,next){
+
+}
 
 
 
@@ -371,3 +389,4 @@ exports.CheckQuerryThroughMongoose = function(req,res,next){
         }
     })
 }
+ 
