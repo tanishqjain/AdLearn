@@ -12,7 +12,9 @@ var QuestionSchema = new Schema({
     CorrectAnswer : String,
     DifficultyRank: Number,
     Topic : String,
-    Concepts : [{name : String, intensity : Number }]
+    Concepts : [{name : String, intensity : Number }],
+    Alpha : Number,
+    Beta : Number
 });
 
 QuestionSchema.plugin(random)

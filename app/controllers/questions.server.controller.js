@@ -87,7 +87,7 @@ exports.KnowExaminee = function(req,res,next){
         }
         
         else{
-            numberOfQuestions = 3; // If student is giving first attempt in that topic;
+            numberOfQuestions = 10; // If student is giving first attempt in that topic;
             console.log(numberOfQuestions)
             next();
         }
