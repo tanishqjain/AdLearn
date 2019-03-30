@@ -96,10 +96,10 @@ exports.KnowExaminee = function(req,res,next){
 }
 
 exports.GenerateQuestions = async function(req,res,next){
-    console.log(numberOfQuestions)
+    console.log(numberOfQuestions, QuestionsEachConcept)
   if(numberOfQuestions > 0){
     if(weakConceptsArray.length > 0){ 
-        console.log(weakConceptsArray[0],attemptedTopic, difficultyLevel,questionsProjected)
+        console.log(weakConceptsArray,attemptedTopic, difficultyLevel,questionsProjected)
         var i = 0
         var questionGenerated ;
         while(true){
