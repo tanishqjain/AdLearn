@@ -66,6 +66,7 @@ exports.KnowExaminee = function(req,res,next){
             }
             //console.log(weakConceptsArray,failurePercentArray)
             i = 0, sum = 0 ; 
+
             while(i < failurePercentArray.length){
                 sum = sum+failurePercentArray[i]
                 i++
@@ -82,34 +83,38 @@ exports.KnowExaminee = function(req,res,next){
                  numberOfQuestions = numberOfQuestions+QuestionsEachConcept[i];
                  i++;
             }
-            
+            console.log("previous record found !!")
+            console.log(weakConceptsArray,failurePercentArray)
+            console.log("number of question and their concept wise division \n",numberOfQuestions,"\n",QuestionsEachConcept)
+            console.log("projecting questions according to above performance parameters!")
+            console.log("Difficulty Levels below!!")
             next();
         }
         
         else{
             numberOfQuestions = 10; // If student is giving first attempt in that topic;
-            console.log(numberOfQuestions)
+            console.log("No previous record of this student found!!")
+            console.log("Difficulty Levels below!!")
             next();
         }
     })
     
 }
-
+var l = 0;
 exports.GenerateQuestions = async function(req,res,next){
-    console.log(numberOfQuestions, QuestionsEachConcept)
   if(numberOfQuestions > 0){
     if(weakConceptsArray.length > 0){ 
-        console.log(weakConceptsArray,attemptedTopic, difficultyLevel,questionsProjected)
-        var i = 0
+        
+        
         var questionGenerated ;
         while(true){
-            if(QuestionsEachConcept[i] > 0){
+            if(QuestionsEachConcept[l] > 0){
                try {
-                let question = await Question.findOne({$and : [{"Concepts.name" : weakConceptsArray[i]},
-                                                    {"Concepts.intensity" :{$in : [3,4,5]}},
-                                                    {"Topic" : attemptedTopic},
-                                                    {"DifficultyRank" : difficultyLevel},
-                                                    {"_id" : {$nin : questionsProjected}}]})
+                console.log(weakConceptsArray[l])
+                let question = await Question.findOne({"Concepts" : {$elemMatch : {"name" : weakConceptsArray[l], "intensity" :{$in : [3,4,5]}}},
+                                                    "Topic" : attemptedTopic,
+                                                    "DifficultyRank" : difficultyLevel,
+                                                    "_id" : {$nin : questionsProjected}}) 
                 if(question){
                     answerToPreviousQuestion = question.CorrectAnswer;
                     questionsProjected.push(question._id)
@@ -120,16 +125,17 @@ exports.GenerateQuestions = async function(req,res,next){
                 return res.send(message);    
                }
                 
-                QuestionsEachConcept[i] = QuestionsEachConcept[i]-1
+                QuestionsEachConcept[l] = QuestionsEachConcept[l]-1
                 break;
             }
     
             else{
                 difficultyLevel = 5;
-                i++;
+                l++;
             }    
         }
         numberOfQuestions = numberOfQuestions-1;
+        console.log(difficultyLevel)
         res.send(questionGenerated);
     }
     
@@ -141,10 +147,11 @@ exports.GenerateQuestions = async function(req,res,next){
                 _id : {$nin : questionsProjected}
             }) 
             if(question){
-                console.log(question.QuestionStatement)
+                //console.log(question.QuestionStatement)
                 answerToPreviousQuestion = question.CorrectAnswer;
                 questionsProjected.push(question._id)
                 numberOfQuestions = numberOfQuestions-1;
+                console.log(difficultyLevel)
                 res.send(question)
                 }
         } catch (err) {
@@ -155,13 +162,15 @@ exports.GenerateQuestions = async function(req,res,next){
       }
   }
   else{
+      console.log(answerArray)
+      console.log("Notice the dynamic change in difficulty level as per answer array!!")
       res.send("your responses have been saved evaluation in progress.....");
       
   }   
 }
 
 exports.Evaluate = function(req,res,next){
-    console.log(questionsProjected)
+    //console.log(questionsProjected)
     if(questionsProjected.length > 0){
         if(req.query.answer == answerToPreviousQuestion){
             answerArray.push(1)
@@ -204,6 +213,7 @@ exports.FinalEvaluation = async function(req,res,next){
         }
     }    
     var percent  = score/maximumMarks*100
+    console.log("Final score and percentage are :-")
     console.log(score, percent)
 
     //calculating TIRT ratio for recommendation
@@ -225,7 +235,8 @@ exports.FinalEvaluation = async function(req,res,next){
         var message = getErrorMessage(err);
         return res.send(message);
     }
-    console.log(AvailableConceptsArray,answerArray,numberOfQuestions)
+    console.log(AvailableConceptsArray)
+    console.log("These are the total number of subtopics available under this topic")
 
 
    //creating tirtratio matrix for all questions
@@ -266,6 +277,7 @@ exports.FinalEvaluation = async function(req,res,next){
         tirtMatrix.push(tirtRationRow)
         i++; //do for each question
     }
+    console.log("Tirt matrix for all the questions!!")
     console.log(tirtMatrix)
    
     //creating tirt ratio matrix for questions wrongly answered
@@ -279,6 +291,7 @@ exports.FinalEvaluation = async function(req,res,next){
             i++
         }
     }
+    console.log("tirt matrix for the questions incorrectly answered!")
     console.log(tirtMatrixFailure)
 
     i=0,j=0 // creating summation of tirt ratio all questions
@@ -292,6 +305,7 @@ exports.FinalEvaluation = async function(req,res,next){
         summationTirtRatio.push(sum)
         i++
     }
+    console.log("summation of tirt ratio all questions!")
     console.log(summationTirtRatio)
 
     i=0, j=0 //creating summation of tirt ratio failed questions
@@ -304,6 +318,7 @@ exports.FinalEvaluation = async function(req,res,next){
         summationTirtRatioFailure.push(sum)
         i++
     }
+    console.log("summation of tirt ratio failed questions!")
     console.log(summationTirtRatioFailure)
 
 
@@ -314,7 +329,7 @@ exports.FinalEvaluation = async function(req,res,next){
         failurePercentinEachConcept.push(percentFailure)
         i++
     }
-    console.log(failurePercentinEachConcept)
+
 
 // Finally saving all the data in userPerformance Collection 
     i=0
