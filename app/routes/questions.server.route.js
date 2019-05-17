@@ -12,8 +12,8 @@ module.exports = function(app){
     app.post('/Evaluation', questions.FinalEvaluation);
 
     // for development purposes
-    app.get('/UpdateQuestions', questions.updateQuestions);
+    /*app.get('/UpdateQuestions', questions.updateQuestions);
     app.get('/TestMasterQuery', questions.CheckQuerryThroughMongoose);
-    app.post('/finalEvaluationCheck', questiondevelopment.FinalEvaluationdevelopment);
+    app.post('/finalEvaluationCheck', questiondevelopment.FinalEvaluationdevelopment);*/
     
     }

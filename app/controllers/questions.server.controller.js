@@ -376,32 +376,4 @@ exports.settingQuestionDifficulty = function(req,res,next){
  */
 
 
-
-exports.updateQuestions = function(req,res,next){
-    var arr = [2,3,4,5]
-    Question.update({
-        DifficultyRank : {$in : arr}
-    }, {Topic : "operating systems"}, { multi: true }, function(err){
-        if(err){
-            var message = getErrorMessage(err);
-            return res.send(message);
-        }
-        else {
-            console.log("update successful..")
-        }
-    })
-}
-
-exports.CheckQuerryThroughMongoose = function(req,res,next){
-    Question.findOne({$and : [{"Concepts.name" : "file structures"},{"Concepts.intensity" : {$in : [3,4,5]}},
-    {"Topic" : "dbms"},{"DifficultyRank" : "1"},{_id : {$nin : ["5c9241f9465cbdef75e4eb4a"]}}]}, function (err,questionGenerated){
-        if(err){
-            var message = getErrorMessage(err);
-            return res.send(message);
-        }
-        else{
-            res.send(questionGenerated);
-        }
-    })
-}
  
